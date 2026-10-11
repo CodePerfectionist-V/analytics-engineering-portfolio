@@ -47,10 +47,11 @@ jobs:
                 priority: interactive
           EOF
 
-      - name: Run dbt deps and generate docs
+      - name: Run dbt deps, run models, and generate docs
         working-directory: ./ae_jaffle_shop
         run: |
           dbt deps
+          dbt run
           dbt docs generate
 
       - name: Deploy to GitHub Pages
