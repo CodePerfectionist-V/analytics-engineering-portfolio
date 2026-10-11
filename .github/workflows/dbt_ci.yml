@@ -1,0 +1,49 @@
+name: dbt CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  dbt_run_and_test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install dbt-bigquery
+
+      - name: Create dbt profiles.yml
+        run: |
+          mkdir -p ~/.dbt
+          echo "
+          ae_jaffle_shop:
+            target: ci
+            outputs:
+              ci:
+                type: bigquery
+                method: service-account
+                project: '${{ secrets.GCP_PROJECT_ID }}'
+                dataset: jaffle_shop_ci
+                threads: 4
+                keyfile_json: '${{ secrets.GCP_SA_KEY }}'
+                timeout_seconds: 300
+                priority: interactive
+          " > ~/.dbt/profiles.yml
+
+      - name: Run dbt pipeline
+        working-directory: ./ae_jaffle_shop
+        run: |
+          dbt deps
+          dbt run
+          dbt test
