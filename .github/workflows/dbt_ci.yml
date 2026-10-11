@@ -26,7 +26,7 @@ jobs:
       - name: Create dbt profile and key file
         run: |
           mkdir -p ~/.dbt
-          echo '${{ secrets.GCP_SA_KEY }}' > ~/.dbt/gcp-key.json
+          echo '${{ secrets.GCP_SA_KEY }}' > $HOME/.dbt/gcp-key.json
           echo "
           ae_jaffle_shop:
             target: ci
@@ -37,7 +37,7 @@ jobs:
                 project: '${{ secrets.GCP_PROJECT_ID }}'
                 dataset: jaffle_shop_ci
                 threads: 4
-                keyfile: ~/.dbt/gcp-key.json
+                keyfile: '$HOME/.dbt/gcp-key.json'
                 timeout_seconds: 300
                 priority: interactive
           " > ~/.dbt/profiles.yml
