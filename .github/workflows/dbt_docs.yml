@@ -32,7 +32,7 @@ jobs:
       - name: Set up dbt profile
         run: |
           mkdir -p ~/.dbt
-          cat << EOF > ~/.dbt/profiles.yml
+          cat << 'EOF' > ~/.dbt/profiles.yml
           ae_jaffle_shop:
             target: dev
             outputs:
