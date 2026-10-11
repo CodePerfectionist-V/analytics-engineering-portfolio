@@ -24,9 +24,28 @@ jobs:
           pip install dbt-bigquery
 
       - name: Authenticate Google Cloud Service Account
+        id: auth
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up dbt profile
+        run: |
+          mkdir -p ~/.dbt
+          cat << EOF > ~/.dbt/profiles.yml
+          ae_jaffle_shop:
+            target: dev
+            outputs:
+              dev:
+                type: bigquery
+                method: service-account
+                keyfile: ${{ steps.auth.outputs.credentials_file_path }}
+                project: ${{ secrets.GCP_PROJECT_ID }}
+                dataset: jaffle_shop
+                threads: 4
+                timeout_seconds: 300
+                priority: interactive
+          EOF
 
       - name: Run dbt deps and generate docs
         working-directory: ./ae_jaffle_shop
