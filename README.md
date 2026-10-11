@@ -1,6 +1,7 @@
 # 🚀 Modern Data Stack Analytics Engineering Portfolio: Jaffle Shop
 
-[![dbt Core](https://img.shields.io/badge/dbt-Core%201.12-orange.svg)](https://www.getdbt.com/)
+[![dbt CI](https://github.com/CodePerfectionist-V/analytics-engineering-portfolio/actions/workflows/dbt_ci.yml/badge.svg)](https://github.com/CodePerfectionist-V/analytics-engineering-portfolio/actions/workflows/dbt_ci.yml)
+[![dbt Core](https://img.shields.io/badge/dbt--Core-1.12.5-orange.svg)](https://www.getdbt.com/)
 [![BigQuery](https://img.shields.io/badge/BigQuery-GCP-blue.svg)](https://cloud.google.com/bigquery)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -30,23 +31,30 @@ The project follows a strict multi-layer DAG (Directed Acyclic Graph) architectu
 
 ---
 
-## 🛡️ Data Quality & Testing
-Data integrity is enforced through automated schema tests defined in YAML configuration files:
-* **Primary Key Constraints**: Validated for `unique` and `not_null` across all entities (`customer_id`, `order_id`, `payment_id`).
-* **Foreign Key Referential Integrity**: Validated using `relationships` tests to ensure zero orphaned records between facts and dimensions.
-* *Result: 11/11 automated tests passing successfully.*
+## 🛡️ Data Quality & CI/CD Pipeline
+- **Automated Schema Testing**: Enforces `unique` and `not_null` primary key constraints along with referential integrity (`relationships`) tests (11/11 tests passing).
+- **GitHub Actions CI/CD**: Every pull request and push to `main` triggers an isolated automated run (`dbt_ci.yml`) running `dbt run` and `dbt test` against an isolated BigQuery CI environment.
+- **Branch Protection**: Enforced branch protection rules on `main` require passing CI status checks before code can be merged.
+
+---
+
+## 🌐 Governance & Exposures
+Downstream analytics consumption is documented directly in dbt via `models/exposures.yml`:
+* **`executive_sales_dashboard`**: Maps downstream Power BI executive reporting to `dim_customers` and `fct_orders` for full data lineage tracking.
 
 ---
 
 ## 🧰 Tech Stack
-* **Data Warehouse**: Google BigQuery (Sandbox)
-* **Transformation Tool**: dbt Core
-* **Version Control**: Git & GitHub
-* **Language**: SQL (BigQuery Dialect), YAML, Python (Virtual Environment)
+- **Data Warehouse**: Google BigQuery (Sandbox)
+- **Transformation Tool**: dbt Core
+- **CI/CD & DevOps**: GitHub Actions, GCP IAM Service Accounts
+- **Version Control**: Git & GitHub
+- **Language**: SQL (BigQuery Dialect), YAML, Python
 
 ---
 
 ## ⚙️ Quickstart / Local Setup
-1. Clone the repository:
+1. **Clone the repository**:
    ```bash
    git clone [https://github.com/CodePerfectionist-V/analytics-engineering-portfolio.git](https://github.com/CodePerfectionist-V/analytics-engineering-portfolio.git)
+   cd analytics-engineering-portfolio/ae_jaffle_shop

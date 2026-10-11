@@ -1,0 +1,19 @@
+version: 2
+
+exposures:
+  - name: executive_sales_dashboard
+    label: Executive Sales & Customer Analytics Dashboard
+    type: dashboard
+    maturity: high
+    url: https://app.powerbi.com
+    description: >
+      Key executive metrics tracking customer lifetime value, total orders,
+      and daily revenue across all payment channels.
+
+    depends_on:
+      - ref('dim_customers')
+      - ref('fct_orders')
+
+    owner:
+      name: Analytics Engineering Team
+      email: analytics@company.com
