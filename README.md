@@ -21,18 +21,48 @@ Raw e-commerce transaction logs often contain fragmented payment states, duplica
 
 The project follows a strict multi-layer Directed Acyclic Graph (DAG) architecture to enforce separation of concerns, optimize BigQuery compute usage, and support enterprise scalability.
 
-```text
-RAW SOURCES (BigQuery)          STAGING LAYER (Views)            INTERMEDIATE LAYER (Views)          MARTS LAYER (Tables)           EXPOSURES
-┌─────────────────────────┐     ┌───────────────────────┐                                       ┌─────────────────────────┐    ┌───────────────────────────┐
-│ raw_jaffle_shop.orders  ├────►│ stg_jaffle_shop__orders├───────────────┐                       │ fct_orders              ├───►│ executive_sales_dashboard │
-└─────────────────────────┘     └───────────────────────┘               │                       │ (Fact Table)            │    │ (Power BI / Lightdash)    │
-┌─────────────────────────┐     ┌───────────────────────┐               ├──►┌──────────────────┐└─────────────────────────┘    └───────────────────────────┘
-│ raw_stripe.payments     ├────►│ stg_stripe__payments  ├───────────────┼──►│ int_orders       │
-└─────────────────────────┘     └───────────────────────┘               │   │ (Order Aggs)     │
-┌─────────────────────────┐     ┌───────────────────────┐               │   └────────┬─────────┘┌─────────────────────────┐
-│ raw_jaffle_shop.customers├───►│ stg_jaffle_shop__cust  ├───────────────┘            └─────────►│ dim_customers           │
-└─────────────────────────┘     └───────────────────────┘                                       │ (Kimball Dimension)     │
-                                                                                                └─────────────────────────┘
+```mermaid
+flowchart LR
+    subgraph Sources [RAW SOURCES]
+        direction TB
+        r1["raw_jaffle_shop.orders"]
+        r2["raw_stripe.payments"]
+        r3["raw_jaffle_shop.customers"]
+    end
+
+    subgraph Staging [STAGING LAYER (Views)]
+        direction TB
+        s1["stg_jaffle_shop__orders"]
+        s2["stg_stripe__payments"]
+        s3["stg_jaffle_shop__cust"]
+    end
+
+    subgraph Intermediate [INTERMEDIATE LAYER]
+        i1["int_orders<br>(Order Aggs)"]
+    end
+
+    subgraph Marts [MARTS LAYER (Tables)]
+        direction TB
+        m1["fct_orders<br>(Fact Table)"]
+        m2["dim_customers<br>(Kimball Dimension)"]
+    end
+
+    subgraph Exposures [EXPOSURES]
+        e1["executive_sales_dashboard<br>(Power BI / Lightdash)"]
+    end
+
+    r1 --> s1
+    r2 --> s2
+    r3 --> s3
+
+    s1 --> i1
+    s2 --> i1
+    s3 --> i1
+
+    i1 --> m1
+    i1 --> m2
+
+    m1 --> e1
 ```
 
 1. **Staging Layer (`models/staging/`)**
