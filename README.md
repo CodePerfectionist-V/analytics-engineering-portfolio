@@ -1,60 +1,115 @@
-# 🚀 Modern Data Stack Analytics Engineering Portfolio: Jaffle Shop
+# 🥪 Enterprise Analytics Engineering Portfolio: Jaffle Shop
 
 [![dbt CI](https://github.com/CodePerfectionist-V/analytics-engineering-portfolio/actions/workflows/dbt_ci.yml/badge.svg)](https://github.com/CodePerfectionist-V/analytics-engineering-portfolio/actions/workflows/dbt_ci.yml)
-[![dbt Core](https://img.shields.io/badge/dbt--Core-1.12.5-orange.svg)](https://www.getdbt.com/)
+[![dbt Core](https://img.shields.io/badge/dbt--Core-v1.12.5-orange.svg)](https://www.getdbt.com/)
 [![BigQuery](https://img.shields.io/badge/BigQuery-GCP-blue.svg)](https://cloud.google.com/bigquery)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## 📌 Project Overview
-This repository showcases an enterprise-grade analytics engineering pipeline built from scratch using **dbt Core** and **Google BigQuery**. It transforms raw transactional data from a mock e-commerce database ("Jaffle Shop") into clean, tested, and business-ready dimensional models following **Kimball dimensional modeling** principles.
+An enterprise-grade, end-to-end analytics engineering pipeline transforming raw transactional e-commerce data into clean, tested, and business-ready Kimball dimensional models using **dbt Core** and **Google BigQuery**.
 
 ---
 
-## 🏗️ Architecture & Data Modeling (The Modular Approach)
-The project follows a strict multi-layer DAG (Directed Acyclic Graph) architecture to separate concerns, ensure maintainability, and optimize query performance:
+## 📌 Business Case & Executive Summary
+Raw e-commerce transaction logs often contain fragmented payment states, duplicate customer touchpoints, and unstandardized monetary amounts. This project implements a modern data stack pipeline to:
+- Centralize transactional logic into standardized, reusable data models.
+- Eliminate metric drift between marketing, sales, and executive reporting.
+- Guarantee data trust through automated CI/CD quality assertions before code enters production.
+
+---
+
+## 🏗️ Architecture & Data Lineage (The Modular Approach)
+
+The project follows a strict multi-layer Directed Acyclic Graph (DAG) architecture to enforce separation of concerns, optimize BigQuery compute usage, and support enterprise scalability.
+
+```text
+RAW SOURCES (BigQuery)          STAGING LAYER (Views)            INTERMEDIATE LAYER (Views)          MARTS LAYER (Tables)           EXPOSURES
+┌─────────────────────────┐     ┌───────────────────────┐                                       ┌─────────────────────────┐    ┌───────────────────────────┐
+│ raw_jaffle_shop.orders  ├────►│ stg_jaffle_shop__orders├───────────────┐                       │ fct_orders              ├───►│ executive_sales_dashboard │
+└─────────────────────────┘     └───────────────────────┘               │                       │ (Fact Table)            │    │ (Power BI / Lightdash)    │
+┌─────────────────────────┐     ┌───────────────────────┐               ├──►┌──────────────────┐└─────────────────────────┘    └───────────────────────────┘
+│ raw_stripe.payments     ├────►│ stg_stripe__payments  ├───────────────┼──►│ int_orders       │
+└─────────────────────────┘     └───────────────────────┘               │   │ (Order Aggs)     │
+┌─────────────────────────┐     ┌───────────────────────┐               │   └────────┬─────────┘┌─────────────────────────┐
+│ raw_jaffle_shop.customers├───►│ stg_jaffle_shop__cust  ├───────────────┘            └─────────►│ dim_customers           │
+└─────────────────────────┘     └───────────────────────┘                                       │ (Kimball Dimension)     │
+                                                                                                └─────────────────────────┘
+```
 
 1. **Staging Layer (`models/staging/`)**
-   * Connects directly to raw source tables.
-   * Performs light, 1:1 transformations: renaming columns, casting data types, and standardizing naming conventions.
-   * Materialized as **Views**.
+   - **Purpose**: Clean, standardize, and rename raw source columns to conform to standard enterprise naming conventions (`snake_case`).
+   - **Materialization**: `view`
+   - **Models**: `stg_jaffle_shop__orders`, `stg_jaffle_shop__customers`, `stg_stripe__payments`
 
 2. **Intermediate Layer (`models/intermediate/`)**
-   * Acts as the business logic workshop.
-   * Aggregates line items and payment statuses to an order grain (`int_orders.sql`) to prepare for downstream joining.
-   * Materialized as **Views**.
+   - **Purpose**: Perform complex business aggregations (e.g., pivoting payment methods, calculating total successful order amounts) prior to dimensional modeling.
+   - **Materialization**: `view`
+   - **Models**: `int_orders`
 
 3. **Marts Layer (`models/marts/core/`)**
-   * Houses business-ready Kimball star schema models optimized for BI dashboards (Power BI / Lightdash):
-     * **`dim_customers`**: Customer profiles enriched with lifetime value (LTV), order counts, and first/last order dates.
-     * **`fct_orders`**: Order-level grain capturing transactional facts and monetary totals.
-   * Materialized as **Tables** for high-performance querying and low latency.
+   - **Purpose**: Serve high-performance Kimball star schema models optimized for downstream BI and executive analytics.
+   - **Materialization**: `table`
+   - **Models**:
+     - `fct_orders`: Order-grain fact table capturing transaction totals, payment statuses, and customer keys.
+     - `dim_customers`: Customer dimension capturing lifetime value (LTV), first/most recent order dates, and total order counts.
 
 ---
 
-## 🛡️ Data Quality & CI/CD Pipeline
-- **Automated Schema Testing**: Enforces `unique` and `not_null` primary key constraints along with referential integrity (`relationships`) tests (11/11 tests passing).
-- **GitHub Actions CI/CD**: Every pull request and push to `main` triggers an isolated automated run (`dbt_ci.yml`) running `dbt run` and `dbt test` against an isolated BigQuery CI environment.
-- **Branch Protection**: Enforced branch protection rules on `main` require passing CI status checks before code can be merged.
-
----
-
-## 🌐 Governance & Exposures
-Downstream analytics consumption is documented directly in dbt via `models/exposures.yml`:
-* **`executive_sales_dashboard`**: Maps downstream Power BI executive reporting to `dim_customers` and `fct_orders` for full data lineage tracking.
+## 🛡️ Data Quality, Governance & CI/CD
+- **11 Automated Data Tests**: Primary key uniqueness, missing value assertions (`not_null`), and foreign key referential integrity (`relationships`) enforced across all staging and mart models.
+- **Automated GitHub Actions CI/CD (`dbt_ci.yml`)**: Every pull request triggers an automated dry run in an isolated BigQuery CI schema (`dbt run` and `dbt test`).
+- **Branch Governance**: Protected `main` branch rules prevent direct code commits and require passing status checks prior to merging.
+- **Downstream Lineage Governance (`exposures.yml`)**: Explicitly links analytical output models to the downstream `executive_sales_dashboard`.
 
 ---
 
 ## 🧰 Tech Stack
-- **Data Warehouse**: Google BigQuery (Sandbox)
-- **Transformation Tool**: dbt Core
-- **CI/CD & DevOps**: GitHub Actions, GCP IAM Service Accounts
+- **Data Warehouse**: Google BigQuery
+- **Transformation Engine**: dbt Core (v1.12.5) with `dbt-bigquery` adapter
+- **Orchestration & CI/CD**: GitHub Actions & GCP Service Account IAM
+- **IDE & Local Dev**: VS Code ("Power User for dbt" extension), Windows PowerShell, Python venv
 - **Version Control**: Git & GitHub
-- **Language**: SQL (BigQuery Dialect), YAML, Python
 
 ---
 
-## ⚙️ Quickstart / Local Setup
-1. **Clone the repository**:
-   ```bash
-   git clone [https://github.com/CodePerfectionist-V/analytics-engineering-portfolio.git](https://github.com/CodePerfectionist-V/analytics-engineering-portfolio.git)
-   cd analytics-engineering-portfolio/ae_jaffle_shop
+## ⚙️ Quickstart & Local Execution
+
+### Prerequisites
+- Python 3.10 or higher
+- Google BigQuery Service Account JSON credentials
+
+### Step-by-Step Setup
+
+1. **Clone the repository:**
+   ```powershell
+   git clone https://github.com/CodePerfectionist-V/analytics-engineering-portfolio.git
+   cd analytics-engineering-portfolio\ae_jaffle_shop
+   ```
+
+2. **Activate the Virtual Environment:**
+   ```powershell
+   .\venv\Scripts\Activate.ps1
+   ```
+
+3. **Install Dependencies:**
+   ```powershell
+   pip install dbt-core dbt-bigquery
+   ```
+
+4. **Execute Data Pipeline:**
+   ```powershell
+   # Seed source lookup data
+   dbt seed
+
+   # Run all transformation models
+   dbt run
+
+   # Execute all 11 schema assertions
+   dbt test
+   ```
+
+5. **Generate and View Interactive Lineage Docs:**
+   ```powershell
+   dbt docs generate
+   dbt docs serve
+   ```
+   Open `http://localhost:8080` in your browser to inspect the interactive DAG and column metadata catalog.
