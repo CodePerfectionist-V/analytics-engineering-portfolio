@@ -23,31 +23,31 @@ The project follows a strict multi-layer Directed Acyclic Graph (DAG) architectu
 
 ```mermaid
 flowchart LR
-    subgraph Sources [RAW SOURCES]
+    subgraph Sources ["RAW SOURCES"]
         direction TB
         r1["raw_jaffle_shop.orders"]
         r2["raw_stripe.payments"]
         r3["raw_jaffle_shop.customers"]
     end
 
-    subgraph Staging [STAGING LAYER (Views)]
+    subgraph Staging ["STAGING LAYER (Views)"]
         direction TB
         s1["stg_jaffle_shop__orders"]
         s2["stg_stripe__payments"]
         s3["stg_jaffle_shop__cust"]
     end
 
-    subgraph Intermediate [INTERMEDIATE LAYER]
+    subgraph Intermediate ["INTERMEDIATE LAYER"]
         i1["int_orders<br>(Order Aggs)"]
     end
 
-    subgraph Marts [MARTS LAYER (Tables)]
+    subgraph Marts ["MARTS LAYER (Tables)"]
         direction TB
         m1["fct_orders<br>(Fact Table)"]
         m2["dim_customers<br>(Kimball Dimension)"]
     end
 
-    subgraph Exposures [EXPOSURES]
+    subgraph Exposures ["EXPOSURES"]
         e1["executive_sales_dashboard<br>(Power BI / Lightdash)"]
     end
 
