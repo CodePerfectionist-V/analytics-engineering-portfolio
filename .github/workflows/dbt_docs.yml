@@ -53,6 +53,7 @@ jobs:
           dbt deps
           dbt run
           dbt docs generate
+          touch ./target/.nojekyll
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
