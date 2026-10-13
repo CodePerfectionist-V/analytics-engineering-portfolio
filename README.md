@@ -4,6 +4,7 @@
 [![dbt Core](https://img.shields.io/badge/dbt--Core-v1.12.5-orange.svg)](https://www.getdbt.com/)
 [![BigQuery](https://img.shields.io/badge/BigQuery-GCP-blue.svg)](https://cloud.google.com/bigquery)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Interactive dbt Docs](https://img.shields.io/badge/dbt_Docs-Interactive_Lineage-FF694B?style=flat&logo=dbt&logoColor=white)](https://codeperfectionist-v.github.io/analytics-engineering-portfolio/)
 
 An enterprise-grade, end-to-end analytics engineering pipeline transforming raw transactional e-commerce data into clean, tested, and business-ready Kimball dimensional models using **dbt Core** and **Google BigQuery**.
 
